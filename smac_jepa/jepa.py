@@ -9,12 +9,12 @@ from smac_jepa.modules import JEPAActionPredictor, StateEncoder, sigreg_loss
 class SMACJEPA(nn.Module):
     def __init__(
         self,
-        state_dim: int,
-        n_agents: int,
-        n_actions: int,
-        latent_dim: int = 64,
+        state_dim: int, #Dimension of the input (Should vary so 
+        n_agents: int, #set max number of agents
+        n_actions: int, #Set all the actions that can be taken (Should be fixed)
+        latent_dim: int = 64,  #Dimension of embedding space (Set manually)
         hidden_dim: int = 128,
-        action_dim: int = 64,
+        action_dim: int = 64, #Number of actions available
         num_heads: int = 2,
     ):
         super().__init__() #Need override nn.Module
