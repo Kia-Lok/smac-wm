@@ -5,7 +5,7 @@ from torch import nn
 
 from smac_jepa.modules import JEPAActionPredictor, StateEncoder, sigreg_loss
 
-
+#Loads both the encoder and predictor as part of the JEPA Model (Currently got issue where the encoder is somehow not an attention head
 class SMACJEPA(nn.Module):
     def __init__(
         self,
@@ -17,11 +17,11 @@ class SMACJEPA(nn.Module):
         action_dim: int = 64,
         num_heads: int = 2,
     ):
-        super().__init__()
+        super().__init__() #Need override nn.Module
         self.state_dim = state_dim
         self.n_agents = n_agents
         self.n_actions = n_actions
-        self.latent_dim = latent_dim
+        self.latent_dim = latent_dim #Flags to pass in as params when running the script
         self.encoder = StateEncoder(state_dim, hidden_dim, latent_dim)
         self.predictor = JEPAActionPredictor(
             latent_dim=latent_dim,
@@ -31,10 +31,10 @@ class SMACJEPA(nn.Module):
             hidden_dim=hidden_dim,
             num_heads=num_heads,
         )
-
+    #Encode the obs into embeddings.
     def encode_state(self, states: torch.Tensor) -> torch.Tensor:
         return self.encoder(states)
-
+    #Produce the prediction based on the current observation and conditioning variable (Past actions)
     def predict_next(
         self,
         latents: torch.Tensor,
@@ -45,9 +45,9 @@ class SMACJEPA(nn.Module):
     def forward(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         # observation sequence plus action-history conditioning predicts the
         # next observation sequence in latent space.
-        latents = self.encode_state(batch["state_t"])
-        target_latent = self.encode_state(batch["target_state"])
-        pred_latent = self.predict_next(latents, batch["action_t"])
+        latents = self.encode_state(batch["state_t"]) #Observed obs
+        target_latent = self.encode_state(batch["target_state"]) #Real next state
+        pred_latent = self.predict_next(latents, batch["action_t"]) #Pred next state
         return {
             "pred_latent": pred_latent,
             "target_latent": target_latent,
