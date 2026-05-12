@@ -46,6 +46,8 @@ def main() -> None:
 
     set_seed(config.seed)
     device = torch.device("cpu") #force cpu usage
+
+    #Loads dataset
     dataset = SMACJEPADataset(config.data, context_len=config.context_len)
     loader = DataLoader(
         dataset,
@@ -54,6 +56,7 @@ def main() -> None:
         num_workers=config.num_workers,
     )
 
+    #Creates model using metadata from as well as optimizer and tracker
     model = SMACJEPA(
         state_dim=dataset.metadata.state_dim,
         n_agents=dataset.metadata.n_agents,
