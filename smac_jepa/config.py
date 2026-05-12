@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 
-
+#Config management but looks hardcoded. Likely need to change to make it variable.
 @dataclass
 class TrainConfig:
     data: list[str]
