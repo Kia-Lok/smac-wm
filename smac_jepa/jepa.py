@@ -51,7 +51,7 @@ class SMACJEPA(nn.Module):
         return {
             "pred_latent": pred_latent,
             "target_latent": target_latent,
-            "mask": batch["mask"], #Masked MSE is used
+            "mask": batch["mask"], #Masked MSE is used due to possibility of the latent space being invalid (actual < max)
         }
 
     def loss(
