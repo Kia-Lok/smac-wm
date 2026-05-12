@@ -32,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--log-every", type=int, default=10)
     return parser.parse_args()
 
-
+#For now, this forces training on CPU, need see if should scale up to GPU
 def to_device(batch: dict[str, torch.Tensor], device: torch.device) -> dict[str, torch.Tensor]:
     return {key: value.to(device) for key, value in batch.items()}
 
@@ -45,7 +45,7 @@ def main() -> None:
     config.save(out_dir / "config.json")
 
     set_seed(config.seed)
-    device = torch.device("cpu")
+    device = torch.device("cpu") #force cpu usage
     dataset = SMACJEPADataset(config.data, context_len=config.context_len)
     loader = DataLoader(
         dataset,
@@ -71,11 +71,12 @@ def main() -> None:
     step_rows: list[dict[str, float | int]] = []
     epoch_rows: list[dict[str, float | int]] = []
     model.train()
+    #Training loop for specified number of epoch
     for epoch in range(1, config.epochs + 1):
         epoch_sums = {"total_loss": 0.0, "pred_loss": 0.0, "sigreg_loss": 0.0}
         epoch_batches = 0
         for batch in loader:
-            global_step += 1
+            global_step += 1 #Hm okay so step is for batches specifically in an epoch.
             epoch_batches += 1
             batch = to_device(batch, device)
             losses = model.loss(batch, sigreg_weight=config.sigreg_weight)
@@ -91,7 +92,7 @@ def main() -> None:
                 "sigreg_loss": float(losses["sigreg_loss"].detach().cpu()),
             }
             logger.log(row)
-            step_rows.append(row)
+            step_rows.append(row) #step_row stores loss for each step
             for key in epoch_sums:
                 epoch_sums[key] += row[key]
             if global_step == 1 or global_step % config.log_every == 0:
@@ -108,7 +109,7 @@ def main() -> None:
             "sigreg_loss": epoch_sums["sigreg_loss"] / max(epoch_batches, 1),
         }
         epoch_logger.log(epoch_row)
-        epoch_rows.append(epoch_row)
+        epoch_rows.append(epoch_row) #Stores loss for the entire epoch (After all batches of it ran)
         print(
             "epoch_summary epoch={epoch} step={step} total_loss={total_loss:.6f} "
             "pred_loss={pred_loss:.6f} sigreg_loss={sigreg_loss:.6f}".format(**epoch_row),
