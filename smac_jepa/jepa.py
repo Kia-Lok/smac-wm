@@ -45,13 +45,13 @@ class SMACJEPA(nn.Module):
     def forward(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         # observation sequence plus action-history conditioning predicts the
         # next observation sequence in latent space.
-        latents = self.encode_state(batch["state_t"]) #Observed obs
-        target_latent = self.encode_state(batch["target_state"]) #Real next state
-        pred_latent = self.predict_next(latents, batch["action_t"]) #Pred next state
+        latents = self.encode_state(batch["state_t"]) #Observed obs (state_t -> encoder -> latents)
+        target_latent = self.encode_state(batch["target_state"]) #Real next state (target_state -> encoder -> target_latents)
+        pred_latent = self.predict_next(latents, batch["action_t"]) #Pred next state (latent + action_t -> predictor -> pred_latent)
         return {
             "pred_latent": pred_latent,
             "target_latent": target_latent,
-            "mask": batch["mask"],
+            "mask": batch["mask"], #Masked MSE is used
         }
 
     def loss(
