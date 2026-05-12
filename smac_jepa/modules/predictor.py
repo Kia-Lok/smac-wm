@@ -28,12 +28,13 @@ class JEPAActionPredictor(nn.Module):
             nn.LayerNorm(latent_dim),
             nn.Linear(latent_dim, latent_dim),
         )
-
+    
     def forward(self, latents: torch.Tensor, conditioning_actions: torch.Tensor) -> torch.Tensor:
         batch, steps = latents.shape[:2]
-        action_flat = conditioning_actions.reshape(batch, steps, self.n_agents * self.n_actions)
-        action_emb = self.action_encoder(action_flat)
-        x = torch.cat([latents, action_emb], dim=-1)
+        #Basically action_emb is the conditioning variable. conditioning_actions store every action from previous state
+        action_flat = conditioning_actions.reshape(batch, steps, self.n_agents * self.n_actions) #Flattens the vector to just 3 dimensions
+        action_emb = self.action_encoder(action_flat) #Becomes action embedding
+        x = torch.cat([latents, action_emb], dim=-1) #Combine to form (obs emb, action emb)
         x = self.input_proj(x)
-        x = self.block(x)
+        x = self.block(x) #Attention block to predict next action (Lowkey sus tho is this how they did it in LeWM?)
         return self.output(x)
